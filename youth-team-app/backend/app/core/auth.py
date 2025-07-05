@@ -1,6 +1,7 @@
 from fastapi import Request, HTTPException
+from app.core.settings import settings
 
-SECRET_TOKEN = "token11235813!!*"
+SECRET_TOKEN = settings.API_TOKEN
 
 
 def check_token(request: Request):
