@@ -1,6 +1,24 @@
-import {Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Avatar, Stack } from '@mui/material';
+import {
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Avatar,
+  Stack
+} from '@mui/material';
+import CakeIcon from '@mui/icons-material/Cake';
 
 const MemberTable = ({ members, onEdit, onDelete }) => {
+  const isBirthdayThisMonth = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.getMonth() === new Date().getMonth();
+  };
+
   const getInitials = (name) => {
     const names = name.trim().split(' ');
     return names.map(n => n.charAt(0).toUpperCase()).join('');
@@ -16,18 +34,26 @@ const MemberTable = ({ members, onEdit, onDelete }) => {
             <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
           {members.map((member) => (
             <TableRow key={member.id}>
               <TableCell>
-                              <Stack direction="row" alignItems="center" spacing={2}>
+                <Stack direction="row" alignItems="center" spacing={1}>
                   <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
                     {getInitials(member.name)}
                   </Avatar>
-                  <Typography variant="body1">{member.name}</Typography>
+                  <Typography variant="body1">
+                    {member.name}
+                    {isBirthdayThisMonth(member.birthday) && (
+                      <CakeIcon fontSize="small" sx={{ ml: 1, color: 'orange' }} />
+                    )}
+                  </Typography>
                 </Stack>
               </TableCell>
+
               <TableCell>{new Date(member.birthday).toLocaleDateString()}</TableCell>
+
               <TableCell align="right">
                 <Button
                   size="small"

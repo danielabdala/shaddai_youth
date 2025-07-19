@@ -18,6 +18,10 @@ import {
   Grid
 } from '@mui/material';
 
+import UpcomingBirthdays from '../../components/UpcomingBirthdays';
+import { getUpcomingBirthdays } from '../utils/birthdayUtils';
+
+
 function Members() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +35,9 @@ function Members() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
 
+  const [upcomingBirthdays, setUpcomingBirthdays] = useState([]); 
+
+
   const [snack, setSnack] = useState({
     open: false,
     message: '',
@@ -40,11 +47,13 @@ function Members() {
   useEffect(() => {
     fetchMembers();
   }, []);
+ 
 
   const fetchMembers = () => {
     api.get('/members/')
       .then(res => {
         setMembers(res.data);
+        setUpcomingBirthdays(getUpcomingBirthdays(res.data));
         setLoading(false);
       })
       .catch(err => {
@@ -126,10 +135,19 @@ function Members() {
       severity
     });
   };
+
   
    return (
+    
     <Container maxWidth="md">
-      <Grid container spacing={3} direction="column">
+      <Grid container spacing={3} direction="column"> 
+
+        {upcomingBirthdays.length > 0 && (
+          <Grid item xs={12}>
+            <UpcomingBirthdays members={upcomingBirthdays} />
+          </Grid>
+        )}
+
         
         <Grid item>
           <Typography variant="h4" align="center" gutterBottom>
@@ -157,7 +175,7 @@ function Members() {
               />
             )}
           </Paper>
-        </Grid>
+        </Grid> 
 
         <Grid item>
           {loading ? (
