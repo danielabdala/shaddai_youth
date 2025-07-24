@@ -15,12 +15,15 @@ import {
   DialogTitle,
   Snackbar,
   Alert,
-  Grid
+  Grid,
+  TextField,
 } from '@mui/material';
 
 import UpcomingBirthdays from '../../components/UpcomingBirthdays';
-import { getUpcomingBirthdays } from '../utils/birthdayUtils';
+import {getUpcomingBirthdays} from '../utils/birthdayUtils';
+import { getSortedMembers } from '../utils/sortUtils';
 
+ 
 
 function Members() {
   const [members, setMembers] = useState([]);
@@ -36,6 +39,10 @@ function Members() {
   const [memberToDelete, setMemberToDelete] = useState(null);
 
   const [upcomingBirthdays, setUpcomingBirthdays] = useState([]); 
+
+  const [sortField, setSortField] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [searchTerm, setSearchTerm] = useState('');
 
 
   const [snack, setSnack] = useState({
@@ -136,7 +143,22 @@ function Members() {
     });
   };
 
-  
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+
+  const filteredMembers = members.filter(member =>
+  member.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+  const sortedMembers = getSortedMembers(filteredMembers, sortField, sortOrder); 
+
    return (
     
     <Container maxWidth="md">
@@ -190,11 +212,39 @@ function Members() {
                     Member List
                   </Typography>
                   <Box sx={{ overflowX: 'auto' }}>
+                    
+                 {/* Search Control */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      width: '100%',
+                      mb: 2,
+                      maxWidth: 600,
+                      mx: 'auto',
+                    }}
+                  >
+                  <TextField
+                    label="Search by name"
+                    variant="outlined"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    fullWidth
+                  />
+
+                  </Box>
+
                     <MemberTable
-                      members={members}
+                      members={sortedMembers}
                       onEdit={startEditing}
                       onDelete={handleDeleteClick}
+                      onSort={handleSort}
+                      sortField={sortField}
+                      sortOrder={sortOrder}
                     />
+
                   </Box>
                 </>
               )}

@@ -1,34 +1,21 @@
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import CakeIcon from '@mui/icons-material/Cake';
+import {formatDateYYYYMMDD} from '../src/utils/birthdayUtils';
 
 const UpcomingBirthdays = ({ members }) => {
   if (members.length === 0) return null;
 
   return (
-    <Card
-      elevation={3}
-      sx={{
-        borderLeft: '6px solid #ffa726', // Orange accent
-        backgroundColor: '#fff8e1',      // Light orange background
-        mb: 4
-      }}
-    >
+    <Card sx={{ p: 2, mb: 2, backgroundColor: '#fffbe6' }} elevation={2}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          🎉 Upcoming Birthdays (Next 30 Days)
+          🎉 Upcoming Birthdays
         </Typography>
-
         {members.map((member) => (
-          <Box
-            key={member.id}
-            display="flex"
-            alignItems="center"
-            gap={1}
-            sx={{ mb: 0.5 }}
-          >
-            <CakeIcon fontSize="small" color="warning" />
-            <Typography variant="body1">
-              {member.name} — {new Date(member.birthday).toLocaleDateString()}
+          <Box key={member.id} display="flex" alignItems="center" mb={1}>
+            <CakeIcon sx={{ color: 'orange', mr: 1 }} />
+            <Typography>
+              <strong>{member.name}</strong> — {formatDateYYYYMMDD(member.upcomingDate.toISOString().split('T')[0])}
             </Typography>
           </Box>
         ))}
