@@ -31,7 +31,7 @@ def list_member(
     return member
 
 
-@router.post("/members/", response_model=Member)
+@router.post("/members/", response_model=Member, status_code=201)
 def create_member(
     member: MemberCreate,
     request: Request,
@@ -57,7 +57,7 @@ def update_member(
     return crud.update_member_fields(db, member, updates)
 
 
-@router.delete("/members/{member_id}")
+@router.delete("/members/{member_id}", status_code=204)
 def delete_member(
     member_id: int,
     request: Request,

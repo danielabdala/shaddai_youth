@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import api from '../api/axios';
-import MemberForm from '../../components/MemberForm';
-import MemberTable from '../../components/MemberTable';
+import MemberForm from '../components/MemberForm';
+import MemberTable from '../components/MemberTable';
+
 import {
   Container,
   Typography,
@@ -19,15 +20,12 @@ import {
   TextField,
 } from '@mui/material';
 
-import UpcomingBirthdays from '../../components/UpcomingBirthdays';
-import {getUpcomingBirthdays} from '../utils/birthdayUtils';
 import { getSortedMembers } from '../utils/sortUtils';
-
- 
 
 function Members() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [name, setName] = useState('');
   const [birthday, setBirthday] = useState('');
 
@@ -38,12 +36,9 @@ function Members() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
 
-  const [upcomingBirthdays, setUpcomingBirthdays] = useState([]); 
-
   const [sortField, setSortField] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
-
 
   const [snack, setSnack] = useState({
     open: false,
@@ -54,13 +49,11 @@ function Members() {
   useEffect(() => {
     fetchMembers();
   }, []);
- 
 
   const fetchMembers = () => {
     api.get('/members/')
       .then(res => {
-        setMembers(res.data);
-        setUpcomingBirthdays(getUpcomingBirthdays(res.data));
+        setMembers(res.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -152,107 +145,143 @@ function Members() {
     }
   };
 
+  // Filter + sort
+  const filteredMembers = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    return members.filter(member => member.name.toLowerCase().includes(q));
+  }, [members, searchTerm]);
 
-  const filteredMembers = members.filter(member =>
-  member.name.toLowerCase().includes(searchTerm.toLowerCase())
-);
+  const sortedMembers = useMemo(() => {
+    return getSortedMembers(filteredMembers, sortField, sortOrder);
+  }, [filteredMembers, sortField, sortOrder]);
 
-  const sortedMembers = getSortedMembers(filteredMembers, sortField, sortOrder); 
+  return (
+    <Container maxWidth="lg">
+      <Grid container spacing={3} direction="column">
 
-   return (
-    
-    <Container maxWidth="md">
-      <Grid container spacing={3} direction="column"> 
+        {/* Centered Add New Member card */}
+        <Grid item xs={12}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Paper
+              elevation={4}
+              sx={{
+                overflow: 'hidden',
+                borderRadius: 2,
+                mb: 4,
+                width: '100%',
+                maxWidth: 640, // adjust 560–720 as you like
+              }}
+            >
+              {/* Gradient header */}
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  color: 'primary.contrastText',
+                  background:
+                    'linear-gradient(135deg, rgba(25,118,210,0.95) 0%, rgba(25,118,210,0.7) 60%, rgba(46,125,50,0.75) 100%)',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Add New Member
+                </Typography>
+              </Box>
 
-        {upcomingBirthdays.length > 0 && (
-          <Grid item xs={12}>
-            <UpcomingBirthdays members={upcomingBirthdays} />
-          </Grid>
-        )}
-
-        
-        <Grid item>
-          <Typography variant="h4" align="center" gutterBottom>
-            Youth Team Members
-          </Typography>
+              {/* Form body */}
+              <Box sx={{ p: 3 }}>
+                {editingMember ? (
+                  <MemberForm
+                    name={editingName}
+                    birthday={editingBirthday}
+                    onChangeName={(e) => setEditingName(e.target.value)}
+                    onChangeBirthday={(e) => setEditingBirthday(e.target.value)}
+                    onSubmit={handleUpdate}
+                  />
+                ) : (
+                  <MemberForm
+                    name={name}
+                    birthday={birthday}
+                    onChangeName={(e) => setName(e.target.value)}
+                    onChangeBirthday={(e) => setBirthday(e.target.value)}
+                    onSubmit={handleSubmit}
+                  />
+                )}
+              </Box>
+            </Paper>
+          </Box>
         </Grid>
 
-        <Grid item>
-          <Paper sx={{ padding: 3 }}>
-            {editingMember ? (
-              <MemberForm
-                name={editingName}
-                birthday={editingBirthday}
-                onChangeName={e => setEditingName(e.target.value)}
-                onChangeBirthday={e => setEditingBirthday(e.target.value)}
-                onSubmit={handleUpdate}
-              />
-            ) : (
-              <MemberForm
-                name={name}
-                birthday={birthday}
-                onChangeName={e => setName(e.target.value)}
-                onChangeBirthday={e => setBirthday(e.target.value)}
-                onSubmit={handleSubmit}
-              />
-            )}
-          </Paper>
-        </Grid> 
-
-        <Grid item>
+        {/* Member List card */}
+        <Grid item xs={12}>
           {loading ? (
             <Box textAlign="center"><CircularProgress /></Box>
           ) : (
-            <Paper sx={{ padding: 2 }} elevation={2}>
-              {members.length === 0 ? (
-                <Typography align="center">No members found.</Typography>
-              ) : (
-                <>
-                  <Typography variant="h5" align="center" gutterBottom>
-                    Member List
-                  </Typography>
-                  <Box sx={{ overflowX: 'auto' }}>
-                    
-                 {/* Search Control */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: 2,
-                      flexWrap: 'wrap',
-                      justifyContent: 'center',
-                      width: '100%',
-                      mb: 2,
-                      maxWidth: 600,
-                      mx: 'auto',
-                    }}
-                  >
-                  <TextField
-                    label="Search by name"
-                    variant="outlined"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    fullWidth
-                  />
+            <Paper elevation={4} sx={{ overflow: 'hidden', borderRadius: 2, mb: 2 }}>
+              {/* Gradient header */}
+              <Box
+                sx={{
+                  px: 2, py: 1.5, display: 'flex', alignItems: 'center',
+                  color: 'primary.contrastText',
+                  background:
+                    'linear-gradient(135deg, rgba(25,118,210,0.95) 0%, rgba(25,118,210,0.7) 60%, rgba(46,125,50,0.75) 100%)',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Member List
+                </Typography>
+              </Box>
 
-                  </Box>
+              <Box sx={{ p: 2 }}>
+                {members.length === 0 ? (
+                  <Typography align="center">No members found.</Typography>
+                ) : (
+                  <>
+                    {/* Search */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        width: '100%',
+                        mb: 2,
+                        maxWidth: 600,
+                        mx: 'auto',
+                      }}
+                    >
+                      <TextField
+                        label="Search by name"
+                        variant="outlined"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        fullWidth
+                        InputLabelProps={{ sx: { px: 0.5, bgcolor: 'background.paper' } }}
+                      />
+                    </Box>
 
-                    <MemberTable
-                      members={sortedMembers}
-                      onEdit={startEditing}
-                      onDelete={handleDeleteClick}
-                      onSort={handleSort}
-                      sortField={sortField}
-                      sortOrder={sortOrder}
-                    />
-
-                  </Box>
-                </>
-              )}
+                    {/* Table */}
+                    <Box sx={{ overflowX: 'auto' }}>
+                      <MemberTable
+                        members={sortedMembers}
+                        onEdit={startEditing}
+                        onDelete={handleDeleteClick}
+                        onSort={handleSort}
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                      />
+                    </Box>
+                  </>
+                )}
+              </Box>
             </Paper>
           )}
         </Grid>
       </Grid>
 
+      {/* Dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
@@ -265,6 +294,7 @@ function Members() {
         </DialogActions>
       </Dialog>
 
+      {/* Snackbar */}
       <Snackbar
         open={snack.open}
         autoHideDuration={3000}
@@ -282,6 +312,5 @@ function Members() {
     </Container>
   );
 }
-
 
 export default Members;
